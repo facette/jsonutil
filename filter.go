@@ -7,6 +7,94 @@ import (
 )
 
 // FilterStruct filters a struct given a list of JSON field paths.
+// The return value is a map containing the struct fields matched on the `json` field tag.
+//
+// It is possible to filter nested structures using a dot as level separator, e.g. "item.sub_item".
+// 
+// Fields are ignored when:
+//      * not tagged with `json`
+//      * tagged with `json:"-"`
+//      * tagged with `omitempty` and set to their default value
+//
+// Example:
+// 		type Service struct {
+//		 		ID        string    `json:"id"`
+//		 		Name      string    `json:"name"`
+//		 		Hostgroup Hostgroup `json:"hostgroup"`
+//		}
+//
+//		 type Hostgroup struct {
+//		 		ID    string `json:"id"`
+//		 		Name  string `json:"name"`
+//		 		Hosts []Host `json:"hosts"`
+//		}
+//
+//		type Host struct {
+//		 		ID   string `json:"id"`
+//		 		Name string `json:"name"`
+//		 		Addr string `json:"addr"`
+//		 		Port int    `json:"port"`
+//		}
+//
+//		func main() {
+//		 		service := Service{
+//		 			ID:   "CCDE8419-74BB-4A8C-8AE4-8E2A17B3C3DD",
+//		 			Name: "service1",
+//		 			Hostgroup: Hostgroup{
+//		 				ID:   "48F2F97F-EB85-418B-A05D-63C0A3914AA4",
+//		 				Name: "hostgroup1",
+//		 				Hosts: []Host{
+//		 					Host{
+//		 						ID:   "E0011483-5E4A-4A2F-96AA-DADA236E3BD6",
+//		 						Name: "host1",
+//		 						Addr: "1.2.3.4",
+//		 						Port: 9999,
+//		 					},
+//		 					Host{
+//		 						ID:   "C9AFE8C0-1017-4025-B9A3-CBB9901E1F44",
+//		 						Name: "host2",
+//		 						Addr: "5.6.7.8",
+//		 						Port: 9999,
+//		 					},
+//		 					Host{
+//		 						ID:   "E2F99B14-8839-4321-90AF-3877486A68D9",
+//		 						Name: "host3",
+//		 						Addr: "9.10.11.12",
+//		 						Port: 9999,
+//		 					},
+//		 				},
+//		 			},
+//		 		}
+//
+//				j, err := json.MarshalIndent(jsonutil.FilterStruct(service, []string{
+//					"name",
+//					"hostgroup.name",
+//					"hostgroup.hosts.name",
+//				}), "", "  ")
+// 				fmt.Printf("%s\n", j)
+//
+// 		}
+//
+// ...will output the following JSON data:
+//
+//		{
+//		  "hostgroup": {
+//		    "hosts": [
+//		      {
+//		        "name": "host1"
+//		      },
+//		      {
+//		        "name": "host2"
+//		      },
+//		      {
+//		        "name": "host3"
+//		      }
+//		    ],
+//		    "name": "hostgroup1"
+//		  },
+//		  "name": "service1"
+//		}
+//
 func FilterStruct(v interface{}, fields []string) map[string]interface{} {
 	var current reflect.Value
 
