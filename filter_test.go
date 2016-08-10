@@ -6,8 +6,11 @@ import (
 )
 
 type Foo struct {
-	String string `json:"string"`
-	Bar    Bar    `json:"bar"`
+	String       string `json:"string"`
+	Skip         string `json:"-"`
+	OmitEmpty    string `json:"omit_empty,omitempty"`
+	OmitNotEmpty string `json:"omit_notempty,omitempty"`
+	Bar          Bar    `json:"bar"`
 }
 
 type Bar struct {
@@ -22,7 +25,8 @@ type Baz struct {
 
 func TestFilterStruct(t *testing.T) {
 	foo := Foo{
-		String: "abc",
+		String:       "abc",
+		OmitNotEmpty: "def",
 		Bar: Bar{
 			Int: 123,
 			Baz: []Baz{
@@ -34,7 +38,8 @@ func TestFilterStruct(t *testing.T) {
 
 	// Test 1st level
 	expected := map[string]interface{}{
-		"string": foo.String,
+		"string":        foo.String,
+		"omit_notempty": foo.OmitNotEmpty,
 		"bar": map[string]interface{}{
 			"int": foo.Bar.Int,
 			"baz": []map[string]interface{}{
@@ -49,6 +54,8 @@ func TestFilterStruct(t *testing.T) {
 		t.Logf("\nExpected %#v\nbut got  %#v", expected, result)
 		t.Fail()
 	}
+
+	delete(expected, "omit_notempty")
 
 	result = FilterStruct(foo, []string{"string", "bar"})
 	if !reflect.DeepEqual(result, expected) {

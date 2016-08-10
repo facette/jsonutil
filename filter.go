@@ -28,8 +28,14 @@ func FilterStruct(v interface{}, fields []string) map[string]interface{} {
 				continue
 			}
 
+			// Get field tag and check if it needs to be skipped
+			tag := ft.Tag.Get("json")
+			if tag == "-" || filterSkip(tag, f) {
+				continue
+			}
+
 			// Get field name
-			fname := filterBaseField(ft.Tag.Get("json"))
+			fname := filterBaseField(strings.SplitN(tag, ",", 2)[0])
 
 			if _, ok := f.Interface().(json.Marshaler); !ok && f.Kind() == reflect.Struct {
 				// Handle sub struct filtering
@@ -94,4 +100,17 @@ func filterFields(prefix string, fields []string) []string {
 
 func filterBaseField(name string) string {
 	return strings.SplitN(strings.SplitN(name, ",", 2)[0], ".", 2)[0]
+}
+
+func filterSkip(tag string, v reflect.Value) bool {
+	parts := strings.Split(tag, ",")
+	if len(parts) > 1 {
+		for _, part := range parts {
+			if part == "omitempty" && reflect.DeepEqual(v.Interface(), reflect.Zero(v.Type()).Interface()) {
+				return true
+			}
+		}
+	}
+
+	return false
 }
