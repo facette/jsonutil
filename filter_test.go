@@ -23,6 +23,38 @@ type Baz struct {
 	Float64 float64 `json:"float64"`
 }
 
+func TestFilterSlice(t *testing.T) {
+	foo := []Foo{{
+		String:       "abc",
+		OmitNotEmpty: "def",
+		Bar: Bar{
+			Int: 123,
+			Baz: []Baz{
+				{Bool: true, Float64: 45.6},
+				{Bool: false, Float64: 78.9},
+			},
+		},
+	}}
+
+	expected := []map[string]interface{}{{
+		"string":        foo[0].String,
+		"omit_notempty": foo[0].OmitNotEmpty,
+		"bar": map[string]interface{}{
+			"int": foo[0].Bar.Int,
+			"baz": []map[string]interface{}{
+				{"bool": foo[0].Bar.Baz[0].Bool, "float64": foo[0].Bar.Baz[0].Float64},
+				{"bool": foo[0].Bar.Baz[1].Bool, "float64": foo[0].Bar.Baz[1].Float64},
+			},
+		},
+	}}
+
+	result := FilterSlice(foo, []string{})
+	if !reflect.DeepEqual(result, expected) {
+		t.Logf("\nExpected %#v\nbut got  %#v", expected, result)
+		t.Fail()
+	}
+}
+
 func TestFilterStruct(t *testing.T) {
 	foo := Foo{
 		String:       "abc",

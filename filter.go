@@ -6,11 +6,28 @@ import (
 	"strings"
 )
 
+// FilterSlice filters a slice of struct given JSON field paths.
+func FilterSlice(v interface{}, fields []string) []map[string]interface{} {
+	rv := reflect.ValueOf(v)
+	if rv.Kind() != reflect.Slice {
+		return nil
+	}
+
+	result := []map[string]interface{}{}
+
+	n := rv.Len()
+	for i := 0; i < n; i++ {
+		result = append(result, FilterStruct(rv.Index(i).Interface(), fields))
+	}
+
+	return result
+}
+
 // FilterStruct filters a struct given a list of JSON field paths.
 // The return value is a map containing the struct fields matched on the `json` field tag.
 //
 // It is possible to filter nested structures using a dot as level separator, e.g. "item.sub_item".
-// 
+//
 // Fields are ignored when:
 // 	* not tagged with `json`
 // 	* tagged with `json:"-"`
@@ -99,9 +116,14 @@ import (
 func FilterStruct(v interface{}, fields []string) map[string]interface{} {
 	var current reflect.Value
 
+	rv := reflect.ValueOf(v)
+	if rv.Kind() != reflect.Struct {
+		return nil
+	}
+
 	result := make(map[string]interface{})
 
-	stack := []reflect.Value{reflect.ValueOf(v)}
+	stack := []reflect.Value{rv}
 
 	for len(stack) > 0 {
 		current, stack = stack[0], stack[1:]
