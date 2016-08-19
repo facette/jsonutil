@@ -6,6 +6,19 @@ import (
 	"strings"
 )
 
+// Filter filters an interface given its type and JSON field paths.
+func Filter(v interface{}, fields []string) interface{} {
+	switch reflect.TypeOf(v).Kind() {
+	case reflect.Slice:
+		return FilterSlice(v, fields)
+
+	case reflect.Struct:
+		return FilterStruct(v, fields)
+	}
+
+	return nil
+}
+
 // FilterSlice filters a slice of struct given JSON field paths.
 func FilterSlice(v interface{}, fields []string) []map[string]interface{} {
 	rv := reflect.ValueOf(v)
