@@ -8,7 +8,13 @@ import (
 
 // Filter filters an interface given its type and JSON field paths.
 func Filter(v interface{}, fields []string) interface{} {
-	switch reflect.TypeOf(v).Kind() {
+	rv := reflect.ValueOf(v)
+
+	for rv.Kind() == reflect.Ptr {
+		rv = rv.Elem()
+	}
+
+	switch rv.Kind() {
 	case reflect.Slice:
 		return FilterSlice(v, fields)
 
@@ -22,6 +28,11 @@ func Filter(v interface{}, fields []string) interface{} {
 // FilterSlice filters a slice of struct given JSON field paths.
 func FilterSlice(v interface{}, fields []string) []map[string]interface{} {
 	rv := reflect.ValueOf(v)
+
+	for rv.Kind() == reflect.Ptr {
+		rv = rv.Elem()
+	}
+
 	if rv.Kind() != reflect.Slice {
 		return nil
 	}
@@ -130,6 +141,11 @@ func FilterStruct(v interface{}, fields []string) map[string]interface{} {
 	var current reflect.Value
 
 	rv := reflect.ValueOf(v)
+
+	for rv.Kind() == reflect.Ptr {
+		rv = rv.Elem()
+	}
+
 	if rv.Kind() != reflect.Struct {
 		return nil
 	}
