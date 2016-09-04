@@ -2,6 +2,7 @@ package jsonutil
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"strings"
 )
@@ -15,6 +16,9 @@ func Filter(v interface{}, fields []string) interface{} {
 	}
 
 	switch rv.Kind() {
+	case reflect.Map:
+		return FilterMap(v, fields)
+
 	case reflect.Slice:
 		return FilterSlice(v, fields)
 
@@ -23,6 +27,31 @@ func Filter(v interface{}, fields []string) interface{} {
 	}
 
 	return nil
+}
+
+// FilterMap filters a map given key paths.
+func FilterMap(v interface{}, fields []string) map[string]interface{} {
+	rv := reflect.ValueOf(v)
+
+	if rv.Kind() != reflect.Map {
+		return nil
+	}
+
+	result := map[string]interface{}{}
+
+	for _, k := range rv.MapKeys() {
+		name := fmt.Sprintf("%v", k.Interface())
+		if filterMatch(name, fields) {
+			iv := rv.MapIndex(k)
+			if iv.Elem().Kind() == reflect.Map {
+				result[name] = FilterMap(iv.Interface(), filterFields(name, fields))
+			} else {
+				result[name] = iv.Interface()
+			}
+		}
+	}
+
+	return result
 }
 
 // FilterSlice filters a slice of struct given JSON field paths.
@@ -205,6 +234,15 @@ func FilterStruct(v interface{}, fields []string) map[string]interface{} {
 
 				if len(slice) > 0 {
 					result[fname] = slice
+				}
+			} else if f.Kind() == reflect.Map {
+				subFields := filterFields(fname, fields)
+				if len(subFields) == 0 && len(fields) > 0 && !filterMatch(fname, fields) {
+					continue
+				}
+
+				if smap := FilterMap(f.Interface(), subFields); smap != nil && len(smap) > 0 {
+					result[fname] = smap
 				}
 			} else if !filterMatch(fname, fields) {
 				// Skip unwanted fields

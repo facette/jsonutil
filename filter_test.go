@@ -23,6 +23,47 @@ type Baz struct {
 	Float64 float64 `json:"float64"`
 }
 
+func TestFilterMap(t *testing.T) {
+	smap := map[string]interface{}{
+		"string": "abc",
+		"int":    123,
+		"map": map[string]interface{}{
+			"1": "a",
+			"2": "b",
+			"3": "c",
+		},
+	}
+
+	result := FilterMap(smap, []string{})
+	if !reflect.DeepEqual(result, smap) {
+		t.Logf("\nExpected %#v\nbut got  %#v", smap, result)
+		t.Fail()
+	}
+
+	expected := map[string]interface{}{
+		"string": "abc",
+	}
+
+	result = FilterMap(smap, []string{"string"})
+	if !reflect.DeepEqual(result, expected) {
+		t.Logf("\nExpected %#v\nbut got  %#v", expected, result)
+		t.Fail()
+	}
+
+	expected = map[string]interface{}{
+		"string": "abc",
+		"map": map[string]interface{}{
+			"3": "c",
+		},
+	}
+
+	result = FilterMap(smap, []string{"string", "map.3"})
+	if !reflect.DeepEqual(result, expected) {
+		t.Logf("\nExpected %#v\nbut got  %#v", expected, result)
+		t.Fail()
+	}
+}
+
 func TestFilterSlice(t *testing.T) {
 	foo := []Foo{{
 		String:       "abc",
