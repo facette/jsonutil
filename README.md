@@ -2,6 +2,4 @@
 
 Collection of various functions to work on JSON data.
 
-## Usage
-
-See [documentation](https://godoc.org/github.com/facette/jsonutil).
+[![GoDoc](https://godoc.org/github.com/facette/jsonutil?status.svg)](https://godoc.org/github.com/facette/jsonutil)
