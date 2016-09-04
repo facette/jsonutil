@@ -181,7 +181,10 @@ func FilterStruct(v interface{}, fields []string) map[string]interface{} {
 				// Handle sub struct filtering
 				if !filterMatch(fname, fields) {
 					continue
-				} else if smap := FilterStruct(f.Interface(), filterFields(fname, fields)); len(smap) > 0 {
+				} else if smap := FilterStruct(
+					f.Interface(),
+					filterFields(fname, fields),
+				); smap != nil && len(smap) > 0 {
 					result[fname] = smap
 				}
 			} else if f.Kind() == reflect.Slice {
@@ -192,7 +195,10 @@ func FilterStruct(v interface{}, fields []string) map[string]interface{} {
 				for i := 0; i < n; i++ {
 					if !filterMatch(fname, fields) {
 						continue
-					} else if smap := FilterStruct(f.Index(i).Interface(), filterFields(fname, fields)); len(smap) > 0 {
+					} else if smap := FilterStruct(
+						f.Index(i).Interface(),
+						filterFields(fname, fields),
+					); smap != nil && len(smap) > 0 {
 						slice = append(slice, smap)
 					}
 				}
