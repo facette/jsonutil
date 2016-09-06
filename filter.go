@@ -220,20 +220,24 @@ func FilterStruct(v interface{}, fields []string) map[string]interface{} {
 				// Handle slice filtering
 				slice := []map[string]interface{}{}
 
-				n := f.Len()
-				for i := 0; i < n; i++ {
-					if !filterMatch(fname, fields) {
-						continue
-					} else if smap := FilterStruct(
-						f.Index(i).Interface(),
-						filterFields(fname, fields),
-					); smap != nil && len(smap) > 0 {
-						slice = append(slice, smap)
+				if f.Type().Elem().Kind() == reflect.Struct {
+					n := f.Len()
+					for i := 0; i < n; i++ {
+						if !filterMatch(fname, fields) {
+							continue
+						} else if smap := FilterStruct(
+							f.Index(i).Interface(),
+							filterFields(fname, fields),
+						); smap != nil && len(smap) > 0 {
+							slice = append(slice, smap)
+						}
 					}
-				}
 
-				if len(slice) > 0 {
-					result[fname] = slice
+					if len(slice) > 0 {
+						result[fname] = slice
+					}
+				} else if filterMatch(fname, fields) {
+					result[fname] = f.Interface()
 				}
 			} else if f.Kind() == reflect.Map {
 				subFields := filterFields(fname, fields)
