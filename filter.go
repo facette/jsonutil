@@ -214,7 +214,7 @@ func FilterStruct(v interface{}, fields []string) map[string]interface{} {
 					f.Interface(),
 					filterFields(fname, fields),
 				); smap != nil && len(smap) > 0 {
-					result[fname] = smap
+					filterSetEntry(result, fname, smap)
 				}
 			} else if f.Kind() == reflect.Slice {
 				// Handle slice filtering
@@ -234,10 +234,10 @@ func FilterStruct(v interface{}, fields []string) map[string]interface{} {
 					}
 
 					if len(slice) > 0 {
-						result[fname] = slice
+						filterSetEntry(result, fname, slice)
 					}
 				} else if filterMatch(fname, fields) {
-					result[fname] = f.Interface()
+					filterSetEntry(result, fname, f.Interface())
 				}
 			} else if f.Kind() == reflect.Map {
 				subFields := filterFields(fname, fields)
@@ -246,14 +246,14 @@ func FilterStruct(v interface{}, fields []string) map[string]interface{} {
 				}
 
 				if smap := FilterMap(f.Interface(), subFields); smap != nil && len(smap) > 0 {
-					result[fname] = smap
+					filterSetEntry(result, fname, smap)
 				}
 			} else if !filterMatch(fname, fields) {
 				// Skip unwanted fields
 				continue
 			} else {
 				// Set item value
-				result[fname] = f.Interface()
+				filterSetEntry(result, fname, f.Interface())
 			}
 		}
 	}
@@ -301,4 +301,10 @@ func filterSkip(tag string, v reflect.Value) bool {
 	}
 
 	return false
+}
+
+func filterSetEntry(result map[string]interface{}, key string, value interface{}) {
+	if _, ok := result[key]; !ok {
+		result[key] = value
+	}
 }
