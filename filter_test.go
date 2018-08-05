@@ -1,8 +1,9 @@
 package jsonutil
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type Foo struct {
@@ -24,7 +25,7 @@ type Baz struct {
 }
 
 func TestFilterMap(t *testing.T) {
-	smap := map[string]interface{}{
+	source := map[string]interface{}{
 		"string": "abc",
 		"int":    123,
 		"map": map[string]interface{}{
@@ -34,21 +35,15 @@ func TestFilterMap(t *testing.T) {
 		},
 	}
 
-	result := FilterMap(smap, []string{})
-	if !reflect.DeepEqual(result, smap) {
-		t.Logf("\nExpected %#v\nbut got  %#v", smap, result)
-		t.Fail()
-	}
+	actual := FilterMap(source, []string{})
+	assert.Equal(t, source, actual)
 
 	expected := map[string]interface{}{
 		"string": "abc",
 	}
 
-	result = FilterMap(smap, []string{"string"})
-	if !reflect.DeepEqual(result, expected) {
-		t.Logf("\nExpected %#v\nbut got  %#v", expected, result)
-		t.Fail()
-	}
+	actual = FilterMap(source, []string{"string"})
+	assert.Equal(t, expected, actual)
 
 	expected = map[string]interface{}{
 		"string": "abc",
@@ -57,11 +52,8 @@ func TestFilterMap(t *testing.T) {
 		},
 	}
 
-	result = FilterMap(smap, []string{"string", "map.3"})
-	if !reflect.DeepEqual(result, expected) {
-		t.Logf("\nExpected %#v\nbut got  %#v", expected, result)
-		t.Fail()
-	}
+	actual = FilterMap(source, []string{"string", "map.3"})
+	assert.Equal(t, expected, actual)
 }
 
 func TestFilterSlice(t *testing.T) {
@@ -89,11 +81,8 @@ func TestFilterSlice(t *testing.T) {
 		},
 	}}
 
-	result := FilterSlice(foo, []string{})
-	if !reflect.DeepEqual(result, expected) {
-		t.Logf("\nExpected %#v\nbut got  %#v", expected, result)
-		t.Fail()
-	}
+	actual := FilterSlice(foo, []string{})
+	assert.Equal(t, expected, actual)
 }
 
 func TestFilterStruct(t *testing.T) {
@@ -122,19 +111,13 @@ func TestFilterStruct(t *testing.T) {
 		},
 	}
 
-	result := FilterStruct(foo, []string{})
-	if !reflect.DeepEqual(result, expected) {
-		t.Logf("\nExpected %#v\nbut got  %#v", expected, result)
-		t.Fail()
-	}
+	actual := FilterStruct(foo, []string{})
+	assert.Equal(t, expected, actual)
 
 	delete(expected, "omit_notempty")
 
-	result = FilterStruct(foo, []string{"string", "bar"})
-	if !reflect.DeepEqual(result, expected) {
-		t.Logf("\nExpected %#v\nbut got  %#v", expected, result)
-		t.Fail()
-	}
+	actual = FilterStruct(foo, []string{"string", "bar"})
+	assert.Equal(t, expected, actual)
 
 	// Test 2nd level
 	expected = map[string]interface{}{
@@ -144,11 +127,8 @@ func TestFilterStruct(t *testing.T) {
 		},
 	}
 
-	result = FilterStruct(foo, []string{"string", "bar.int"})
-	if !reflect.DeepEqual(result, expected) {
-		t.Logf("\nExpected %#v\nbut got  %#v", expected, result)
-		t.Fail()
-	}
+	actual = FilterStruct(foo, []string{"string", "bar.int"})
+	assert.Equal(t, expected, actual)
 
 	// Test 3rd level
 	expected = map[string]interface{}{
@@ -161,9 +141,6 @@ func TestFilterStruct(t *testing.T) {
 		},
 	}
 
-	result = FilterStruct(foo, []string{"string", "bar.baz.bool"})
-	if !reflect.DeepEqual(result, expected) {
-		t.Logf("\nExpected %#v\nbut got  %#v", expected, result)
-		t.Fail()
-	}
+	actual = FilterStruct(foo, []string{"string", "bar.baz.bool"})
+	assert.Equal(t, expected, actual)
 }

@@ -1,15 +1,16 @@
 package jsonutil
 
 import (
+	"io/ioutil"
 	"os"
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMarshalFile(t *testing.T) {
 	var (
-		testFile = "./test.json"
-		foo      = Foo{
+		expected = Foo{
 			String: "test",
 			Bar: Bar{
 				Int: 42,
@@ -18,23 +19,18 @@ func TestMarshalFile(t *testing.T) {
 				},
 			},
 		}
-		foo2 Foo
+		actual Foo
 	)
 
-	if err := MarshalFile(testFile, foo); err != nil {
-		t.Logf("error: %s", err)
-		t.Fail()
-	}
+	tmpFile, err := ioutil.TempFile("", "jsonutil-marshal_")
+	assert.Nil(t, err)
+	defer os.Remove(tmpFile.Name())
 
-	if err := UnmarshalFile(testFile, &foo2); err != nil {
-		t.Logf("error: %s", err)
-		t.Fail()
-	}
+	err = MarshalFile(tmpFile.Name(), expected)
+	assert.Nil(t, err)
 
-	if !reflect.DeepEqual(foo, foo2) {
-		t.Logf("\nExpected %#v\nbut got  %#v", foo, foo2)
-		t.Fail()
-	}
+	err = UnmarshalFile(tmpFile.Name(), &actual)
+	assert.Nil(t, err)
 
-	os.Remove(testFile)
+	assert.Equal(t, expected, actual)
 }
