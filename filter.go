@@ -214,7 +214,7 @@ func FilterStruct(v interface{}, fields []string) map[string]interface{} {
 				} else if smap := FilterStruct(
 					f.Interface(),
 					filterFields(fname, fields),
-				); smap != nil && len(smap) > 0 {
+				); len(smap) > 0 {
 					filterSetEntry(result, fname, smap)
 				}
 			} else if f.Kind() == reflect.Slice {
@@ -229,7 +229,7 @@ func FilterStruct(v interface{}, fields []string) map[string]interface{} {
 						} else if smap := FilterStruct(
 							f.Index(i).Interface(),
 							filterFields(fname, fields),
-						); smap != nil && len(smap) > 0 {
+						); len(smap) > 0 {
 							slice = append(slice, smap)
 						}
 					}
@@ -246,7 +246,7 @@ func FilterStruct(v interface{}, fields []string) map[string]interface{} {
 					continue
 				}
 
-				if smap := FilterMap(f.Interface(), subFields); smap != nil && len(smap) > 0 {
+				if smap := FilterMap(f.Interface(), subFields); len(smap) > 0 {
 					filterSetEntry(result, fname, smap)
 				}
 			} else if !filterMatch(fname, fields) {

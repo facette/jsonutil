@@ -19,7 +19,7 @@ func (s NullString) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON satisfies the json.Unmarshaller interface.
 func (s NullString) UnmarshalJSON(b []byte) error {
 	if !bytes.Equal(b, []byte("null")) {
-		return json.Unmarshal(b, s)
+		return json.Unmarshal(b, &s)
 	}
 	return nil
 }
